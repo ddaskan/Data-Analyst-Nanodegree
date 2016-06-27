@@ -1,0 +1,18 @@
+{
+    "contents" : "library(stringr)\nstr_extract_all(string, \"#\\\\w+\")[[1]]\n\n\nstring <- \"All these useful #programmers are so #helpful, thank you.\"\n\ngsub(\"#\", \"\", string)\n\nsubString <- gsub(\".*#\",\"\",string) #this removes everything before the '#'\nsubString <- gsub(\" .*$\",\"\",subString) #this removes everything after the space\nsubString <- gsub(\"\\\\..*$\",\"\",subString) #this removes the period (if there was one there)\nsubString <- gsub(\",.*$\",\"\",subString) #this removes the comma\n\nfor (i in string) {\n    print(i)\n}\n\nsub(\".*:\", \"\", string)\n\nsubstr(string,\"#\",\" \")\n",
+    "created" : 1466474611256.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "2381004382",
+    "id" : "9E106B94",
+    "lastKnownWriteTime" : 7011605692497750387,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
