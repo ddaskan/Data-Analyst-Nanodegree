@@ -1,0 +1,451 @@
+White Wine Quality Exploration by Dogan Askan
+========================================================
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using
+# in your analysis in this code chunk.
+library(ggplot2)
+library(GGally)
+library('corrplot')
+library(RColorBrewer)
+library('bitops')
+library('RCurl')
+library("memisc")
+library("gridExtra")
+library("dplyr")
+library("Hmisc")
+```
+
+```{r echo=FALSE, Load_the_Data}
+df <- read.csv("wineQualityWhites.csv")
+```
+
+# Univariate Plots Section
+This report explores a dataset containing quality and attributes for approximately 4,900 white wines.
+```{r echo=FALSE, Univariate_Plots}
+str(df)
+summary(df)
+```
+It looks there are just `r sum(df$citric.acid==0)` zeros in Citric Acid, and no NA values in the entire dataset.
+```{r, echo=FALSE}
+print("Non-Zero values in columns")
+for (i in 1:ncol(df)) {
+    print(paste(table(df[,i]==0),colnames(df)[i]))
+}
+print("Non-NA values in columns")
+for (i in 1:ncol(df)) {
+    print(paste(table(is.na(df[,i])),colnames(df)[i]))
+}
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(fixed.acidity), data = df) + geom_histogram(binwidth = 0.2)
+summary(df$fixed.acidity)
+```
+Fixed Acidity looks normally distributed. Skewness is very minor. There are just a few outliers. Fixed Acidity may be helpful in further analysis due to its relation with pH and Volatile Acidity. 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(volatile.acidity), data = df) + geom_histogram(binwidth = 0.01)
+summary(df$volatile.acidity)
+```
+Volatile Acidity also looks normally distributed. It is positively skewed. There are more than a few outliers. Volatile Acidity may be helpful in further analysis due to its relation with pH and Fixed Acidity.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(citric.acid), data = df) + geom_histogram(binwidth = 0.01)
+summary(df$citric.acid)
+```
+Interestingly, there are relatively many wines with 0.49 and 0.74 Citric Acid values. Apart from that, distributions look normal so far. There is an extreme outlier here with value `r max(df$citric.acid)`. Since the acidity attributes (i.e. Fixed Acidity, Volatile Acidity and Citric Acid) are related each other, I believe those three may be significant in further analysis.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(residual.sugar), data = df) + geom_histogram(binwidth = 0.1)
+ggplot(aes(residual.sugar), data = df) + geom_histogram(binwidth = 0.04) + 
+    scale_x_log10() + ggtitle("Log_10 Transformation of Residual Sugar")
+summary(df$residual.sugar)
+```
+For Residual Sugar, most values are below 3 and half of all values are below `r median(df$residual.sugar)` even though there are relatively huge outliers such as `r max(df$residual.sugar)`. As also seen above Residual Sugar is highly skewed. So, it may be helpful to make a Log_10 transformation for further analysis.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#ggplot(aes(chlorides), data = df) + geom_histogram(binwidth = 0.001) + 
+#    xlim(0, 0.1)
+#ggplot(aes(free.sulfur.dioxide), data = df) + geom_histogram(binwidth = 1) + 
+#    xlim(0, 100)
+#ggplot(aes(total.sulfur.dioxide), data = df) + geom_histogram(binwidth = 5)
+ggplot(aes(density), data = df) + geom_histogram(binwidth = 0.0002) + 
+    xlim(0.96, 1.04)
+summary(df$density)
+density_array_wo_outliers <- subset(df, df$density < quantile(df$density,0.99) 
+                                    & df$density > 
+                                        quantile(df$density,0.01))$density
+print(paste("Lower bound of range:", range(density_array_wo_outliers)[1]))
+print(paste("Upper bound of range:", range(density_array_wo_outliers)[2]))
+print(paste("Standard Deviation:", sd(density_array_wo_outliers)))
+ggplot(aes(density), data = df) + geom_histogram(binwidth = 0.0002) + 
+    xlim(0.985, 1.005)
+```
+For better understanding of Density, x axises are limited by omitting outliers. Although Standard Deviation is very small, I think Density may be somehow correlated with Quality. There are some peaks through the distribution. However, mean and median very close to each other and by looking the chart itself, it doesn't look like skewed. Excluding outliers, range and variance for Density are relatively small.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(pH), data = df) + geom_histogram(binwidth = 0.01)
+#ggplot(aes(sulphates), data = df) + geom_histogram(binwidth = 0.01)
+summary(df$pH)
+```
+pH also looks normally distributed, there are no extreme outliers, no skewness. Half of pH values are between `r quantile(df$pH, 0.25)` and `r quantile(df$pH, 0.75)` with mean `r mean(df$pH)`.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(alcohol), data = df) + geom_histogram(binwidth = 0.1)
+summary(df$alcohol)
+```
+Alcohol values are distributed positively skewed. There are no extreme outliers as expected. The range is between `r range(df$alcohol)[1]` and `r range(df$alcohol)[2]`. From gut feeling, I believe Alcohol plays a crucial role for the quality of a white wine.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(factor(quality)), data = df) + geom_bar()
+summary(df$quality)
+```
+Quality is also normally distributed as expected with the range `r range(df$quality)[2]-range(df$quality)[1]`. It is interesting that there are just a few white wines with Quality score 3 or 9. So, there is no perfect white wine! There are also no white wine with a quality score of 0, 1 or 2.
+
+# Univariate Analysis
+
+### The structure of the dataset
+There are 4,898 white wines in the dataset with 12 features (Fixed Acidity, Volatile Acidity, Citric Acid, Residual Sugar, Chlorides, Free Sulfur Dioxide, Total Sulfur Dioxide, Density, pH, Sulphates, Alcohol, and Quality). All variables are numeric.
+
+Other observations,
+
+* Fixed Acidity is mostly about 7
+* 90% of Volatile Acidity values are below `r quantile(df$volatile.acidity,0.9)`.
+* There are tow unsual peaks in Citric Acid values at 0.49 and 0.74.
+* Residual Sugar is the most postively skewed attribute.
+* Although the maximum of Chlorides values is `r max(df$chlorides)`, 92% of Chlorides values are below `r quantile(df$chlorides,0.92)`.
+* The range of Free Sulfur Dioxide is `r max(df$free.sulfur.dioxide)-min(df$free.sulfur.dioxide)`, and the mean is `r mean(df$free.sulfur.dioxide)`.
+* The mean of Total Sulfur Dioxide is `r mean(df$total.sulfur.dioxide)`.
+* The range of Density is `r (max(df$density)-min(df$density))/sd(df$density)` times greater than its standard deviation.
+
+### The main features of interest in the dataset
+The main features in the data set are Residual Sugar, Density and Alcohol. I would like to determine which features are more significant to predict the Quality. I do not think all variables in the data set are significant to build a model to predict the Quality.
+
+### Other features in the dataset that will help support the investigation into the features of interest
+Acidity attributes (i.e. Fixed Acidity, Volatile Acidity and Citric Acid) may also be significant to predict the Quality as well as pH.
+
+### The new variable created from existing variables in the dataset
+I will add a factor variable attribute of Quality and some buckets in the further part of analysis.
+
+### Unusual distributions, operations on the data to tidy, adjust, or change the form of the data
+For better visualization, I mostly limit the x axis to get rid of outliers. I also make a Log_10 transformation to Residual Sugar since it is highly skewed, now it looks like a bimodal distribution with two peaks around 1.2 and 10.
+
+
+# Bivariate Plots Section
+```{r echo=FALSE, Bivariate_Plots, fig.width=7, fig.height=7}
+#the function to create p-value matrix
+cor.mtest <- function(mat, conf.level = 0.95){
+  mat <- as.matrix(mat)
+    n <- ncol(mat)
+    p.mat <- lowCI.mat <- uppCI.mat <- matrix(NA, n, n)
+    diag(p.mat) <- 0
+    diag(lowCI.mat) <- diag(uppCI.mat) <- 1
+    for(i in 1:(n-1)){
+        for(j in (i+1):n){
+            tmp <- cor.test(mat[,i], mat[,j], conf.level = conf.level)
+            p.mat[i,j] <- p.mat[j,i] <- tmp$p.value
+            lowCI.mat[i,j] <- lowCI.mat[j,i] <- tmp$conf.int[1]
+            uppCI.mat[i,j] <- uppCI.mat[j,i] <- tmp$conf.int[2]
+        }
+    }
+    return(list(p.mat, lowCI.mat, uppCI.mat))
+}
+#df[,1:13] is used not to add new factor variable
+res <- cor.mtest(df[,1:13], 0.95) #p-value matrix
+par(cex=0.9) #to make labels smaller
+#par(omi=c(0, 0, 0, 0)) # (bottom, left, top, right)  in inches  
+corrplot(cor(df[,1:13]), p.mat = res[[1]], sig.level=0.05, 
+         method = "number", type="lower", cl.pos="n", bg="gray")
+```
+
+"X" denotes the pairs with insignificant p-values. Residual Sugar - Density and Alcohol - Density pairs have strong correlations. And, there are just weak correlations in Density - Quality and Alcohol - Quality.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+df$factor_quality <- factor(df$quality)
+#set.seed(666)
+#sample_df <- df[sample(1:nrow(df), 100), ]
+#ggpairs(sample_df, axisLabels = "internal")
+ggplot(aes(x=factor_quality, y=fixed.acidity), data = df) + geom_boxplot() +
+    ylim(quantile(df$fixed.acidity, 0.01), quantile(df$fixed.acidity, 0.99))#
+cor.test(df$quality, df$fixed.acidity)
+#ggplot(aes(x=factor_quality, y=volatile.acidity), data = df) + geom_boxplot()
+#ggplot(aes(x=factor_quality, y=citric.acid), data = df) + geom_boxplot() + 
+#    ylim(0, quantile(df$citric.acid, 0.99))
+#ggplot(aes(x=factor_quality, y=residual.sugar), data = df) + geom_boxplot() +
+#    ylim(0, quantile(df$residual.sugar, 0.99))
+#ggplot(aes(x=factor_quality, y=chlorides), data = df) + geom_boxplot() + 
+#    ylim(0, quantile(df$chlorides, 0.99))
+#ggplot(aes(x=factor_quality, y=free.sulfur.dioxide), data = df) + 
+#    geom_boxplot() +ylim(0, quantile(df$free.sulfur.dioxide, 0.99))
+```
+According to this box plot, less Fixed Acidity implies better Quality in the Quality range 3-7. However, there is no significant correlation between this pair. For better visualization, the lowest and highest 1% are omitted to remove outliers.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=factor_quality, y=total.sulfur.dioxide), data = df) + 
+    geom_boxplot() #
+cor.test(df$quality, df$total.sulfur.dioxide)
+```
+Although there is no significant correlation between Total Sulfur Dioxide and Quality, the box plot is interesting. The range is tend to decrease while Quality is increasing. So, this may indicate that Total Sulfur Dioxide may also have a significant effect to predict Quality score.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=factor_quality, y=density), data = df) + geom_boxplot() +
+    ylim(quantile(df$density, 0.01), quantile(df$density, 0.79))
+cor.test(df$quality, df$density)
+```
+In the above box plot, the lowest 1% and highest 21% are omitted to remove outliers in order to make the visualization better. There is a weak negative correlation between Density and Quality with the value `r cor(df[,1:13])[9,13]`. So, this attribute may have a significant effect to predict Quality score. The relation is especially remarkable after Quality score 5.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x=factor_quality, y=pH), data = df) + geom_boxplot() ##
+cor.test(df$quality, df$pH)
+```
+pH is negatively correlated in low qualities such as 3, 4 and 5 then it turns to a positive correlation. However, it is hard to say that there is a correlation with the value `r cor(df[,1:13])[10,13]`. 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#ggplot(aes(x=factor_quality, y=sulphates), data = df) + geom_boxplot()
+ggplot(aes(x=factor_quality, y=alcohol), data = df) + geom_boxplot() ##
+cor.test(df$quality, df$alcohol)
+```
+It can visually be interpreted that Alcohol has some effect on Quality. It is negatively correlated in low qualities such as 3, 4 and 5 then it turns to a positive correlation, pH's effect on Quality also acts like that. It is hard to comment on other's effect on Quality visually. With the help correlation test, I can easily say that there is a correlation between Alcohol and Quality even it is moderate. 
+
+So, some correlated pairs can be visualized on scatter plots to understand the relations better.
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+print("Strong Correlations")  
+ggplot(aes(x = residual.sugar, y = density), data = df) + 
+    geom_jitter(alpha = 0.5) + geom_smooth(method = "lm") + 
+    xlim(0, quantile(df$residual.sugar, 0.99)) + 
+    ylim(0.986, quantile(df$density, 0.99))
+cor.test(df$density, df$residual.sugar)
+```
+This pair has the strongest correlation among the other pairs in the dataset. It can also be seen visually in the above graph. This may occur due to Residual Sugar's relatively higher density.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = alcohol, y = density), data = df) + geom_jitter(alpha = 0.5) +
+    geom_smooth(method = "lm") + ylim(0.986, quantile(df$density, 0.99))
+cor.test(df$density, df$alcohol)
+```
+This pair has the second strongest correlation among the other pairs in the dataset with value `r cor(df[,1:13])[9,12]`. It can also be seen visually in the above graph. This may occur due to Alcohol's relatively lower density like the effect of Residual Sugar on Density.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+print("Moderate Correlations")
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide), data = df) + 
+    geom_jitter(alpha = 0.5) + geom_smooth(method = "lm") + 
+    xlim(0, quantile(df$free.sulfur.dioxide, 0.99)) +
+    ylim(0, quantile(df$total.sulfur.dioxide, 0.99))
+cor.test(df$free.sulfur.dioxide, df$total.sulfur.dioxide)
+```
+There is a moderate correlation between this pair. It makes sense because of this relation: total so2 = fixed + free so2. This is also the second strongest positive correlation among the other pairs in the dataset with value `r cor(df[,1:13])[7,8]`.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = density, y = total.sulfur.dioxide), data = df) + 
+    geom_jitter(alpha = 0.5) + geom_smooth(method = "lm") + 
+    xlim(0.987, quantile(df$density, 0.99)) +
+    ylim(0, quantile(df$total.sulfur.dioxide, 0.99))
+cor.test(df$density, df$total.sulfur.dioxide)
+# print("Weak Correlations")  
+# ggplot(aes(x = alcohol, y = total.sulfur.dioxide), data = df) + 
+#     geom_jitter(alpha = 0.5) + geom_smooth(method = "lm") + 
+#     ylim(0, quantile(df$total.sulfur.dioxide, 0.99))
+# ggplot(aes(x = alcohol, y = residual.sugar), data = df) + 
+#     geom_jitter(alpha = 0.5) + geom_smooth(method = "lm") + 
+#     ylim(0, quantile(df$residual.sugar, 0.99))
+# ggplot(aes(x = alcohol, y = quality), data = df) + geom_jitter(alpha = 0.5) + 
+#     geom_smooth(method = "lm")
+# ggplot(aes(x = pH, y = fixed.acidity), data = df) + geom_jitter(alpha = 0.5) + 
+#     geom_smooth(method = "lm")
+# ggplot(aes(x = alcohol, y = chlorides), data = df) + geom_jitter(alpha = 0.5) + 
+#     geom_smooth(method = "lm") + ylim(0, quantile(df$chlorides, 0.99))
+# ggplot(aes(x = density, y = quality), data = df) + geom_jitter(alpha = 0.5) + 
+#     geom_smooth(method = "lm") + xlim(0.987, quantile(df$density, 0.99))
+```
+This is the third strongest positive correlation among the other pairs in the dataset with value `r cor(df[,1:13])[9,8]`. Actually, I could not construct the logic behind this, so I would like to remind the principal "correlation doesn't imply causation".  
+
+Generally, as seen above scatter plots, many variable pairs have some correlations. However, power of correlations and their effects on Quality vary.
+
+# Bivariate Analysis
+
+### General observations
+Interestingly, less Alcohol implies better Quality in the Quality range 3-5, but, in the Quality range 5-9, greater Alcohol refers better Quality. This exact relation can also be seen in pH with less variance. Even though Fixed Acidity and pH are related, Fixed Acidity only ensures the first part of the relation, less Fixed Acidity implies better Quality in the Quality range 3-5. In the second part, Density looks that has a great effect on wine quality, I mean, not in the Quality range 3-5, but in the Quality range 5-9, less Density implies better Quality according to related box plot. I also believe that too much Alcohol or pH also affect Quality in a bad way. In consequence, both too much and too little any attributes lower the quality of white wines, and this makes building a linear model harder due to the overfitting. 
+
+### Interesting relationships between the other features
+Total and Free Sulfur Dioxide are moderately correlated, this is also third strongest correlation amongst the others. Since total so2 = fixed + free so2, this makes sense. In a similar manner, I was expecting alike relations in acidities, but only significant correlation is between pH and Fixed Acidity which also makes sense because pH is a quantitative assessment of Fixed Acidity.
+
+### The strongest relationship
+The strongest one is between Density and Residual Sugar, followed by the pair Alcohol - Density. However, only Density and Alcohol are directly correlated with Quality although the correlations are weak. Since Alcohol is already correlated with Density, this may be the reason. Furthermore, since Residual Sugar is strongly correlated wit Density, Residual Sugar may also have significant amount of effect on Quality.
+
+
+# Multivariate Plots Section
+
+Initially, three strongly correlated attributes can be visualized.
+```{r echo=FALSE, Multivariate_Plots, warning=FALSE}
+df$residual.sugar_bucket <- cut(df$residual.sugar, breaks=c(0, 4, 8, 66))
+df$alcohol_bucket <- cut(df$alcohol, breaks=c(7, 10, 11, 15))
+df$density_bucket <- cut(df$density, breaks=c(0.98, 0.992, 0.995, 1.04))
+ggplot(aes(x = residual.sugar, y = density, color = alcohol_bucket), 
+       data = df) + 
+    geom_jitter(alpha = 0.7) + xlim(0, quantile(df$residual.sugar, 0.99)) + 
+    ylim(0.986, quantile(df$density, 0.99)) + 
+    scale_color_brewer(type = 'div', palette = "Dark2") + 
+    geom_smooth(method = "lm", se = FALSE,size=1)
+ggplot(aes(x = alcohol, y = density, color = residual.sugar_bucket), 
+       data = df) + 
+    geom_jitter(alpha = 0.7)  + ylim(0.986, quantile(df$density, 0.99)) + 
+    scale_color_brewer(type = 'div', palette = "Paired") +
+    geom_smooth(method = "lm", se = FALSE,size=1)
+ggplot(aes(x = alcohol, y = residual.sugar, color = density_bucket), 
+       data = df) + 
+    ylim(0, quantile(df$residual.sugar, 0.99)) + geom_jitter(alpha = 0.7)  + 
+    scale_color_brewer(type = 'div', palette = "Accent") +
+    geom_smooth(method = "lm", se = FALSE,size=1)
+print(paste("Correlation of Residual Sugar and Density:", cor(df[,1:13])[9,5]))
+print(paste("Correlation of Alcohol and Density:", cor(df[,1:13])[9,12]))
+print(paste("Correlation of Residual Sugar and Alcohol:", cor(df[,1:13])[12,5]))
+```
+It looks that these variables have significant effects on each other, and two of them are strong. Furthermore, by looking above three scatter plots, one can easily distinguish the clusterings. There are obvious clusterings for Alcohol, Residual Sugar and Density on these strongly correlated pairs. Since Alcohol is the one which has most correlated pairs and it is the most correlated attribute with Quality, I think its pairs may also have some effects on Quality.  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+print("Moderate Correlations")  
+ggplot(aes(x = free.sulfur.dioxide, y = total.sulfur.dioxide, 
+           color = factor_quality), data = df) + 
+    geom_jitter(alpha = 0.5) + 
+    xlim(0, quantile(df$free.sulfur.dioxide, 0.99)) +
+    ylim(0, quantile(df$total.sulfur.dioxide, 0.99)) + 
+    scale_color_brewer(type = 'div', palette = "Oranges", 
+                       guide = guide_legend(reverse = T)) +
+    geom_smooth(method = "lm", se = FALSE,size=1)
+ggplot(aes(x = density, y = total.sulfur.dioxide, color = factor_quality), 
+       data = df) + 
+    geom_jitter(alpha = 0.5) + xlim(0.987, quantile(df$density, 0.99)) +
+    ylim(0, quantile(df$total.sulfur.dioxide, 0.99)) +
+    scale_color_brewer(type = 'div', palette = "Oranges", 
+                       guide = guide_legend(reverse = T)) +
+    geom_smooth(method = "lm", se = FALSE,size=1)
+cor(df[,c(7,8,9,13)])
+# print("Weak Correlations")  
+# ggplot(aes(x = alcohol, y = total.sulfur.dioxide), data = df) + 
+#     geom_jitter(aes(color = factor_quality), alpha = 0.5) + 
+#     ylim(0, quantile(df$total.sulfur.dioxide, 0.99)) +
+#     scale_color_brewer(type = 'div', palette = "Oranges", 
+#                        guide = guide_legend(reverse = T))
+# ggplot(aes(x = alcohol, y = residual.sugar), data = df) + 
+#     geom_jitter(aes(color = factor_quality), alpha = 0.5) + 
+#     ylim(0, quantile(df$residual.sugar, 0.99)) +
+#     scale_color_brewer(type = 'div', palette = "Oranges", 
+#                        guide = guide_legend(reverse = T))
+# ggplot(aes(x = pH, y = fixed.acidity), data = df) + 
+#     geom_jitter(aes(color = factor_quality), alpha = 0.5) +
+#     scale_color_brewer(type = 'div', palette = "Oranges", 
+#                        guide = guide_legend(reverse = T))
+# ggplot(aes(x = alcohol, y = chlorides), data = df) + 
+#     geom_jitter(aes(color = factor_quality), alpha = 0.5) + 
+#     ylim(0, quantile(df$chlorides, 0.99)) +
+#     scale_color_brewer(type = 'div', palette = "Oranges", 
+#                        guide = guide_legend(reverse = T))
+```
+Until this part of the analysis one can think that there might be remarkable clustering or more heterogeneous distributions of Quality on the pairs, but there are not. This may also make building model harder than I thought. Unlike the strongly correlated trio, Quality factors are almost homogeneously distributed in these two moderately correlated pairs.  
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+m1 <- lm(quality ~ alcohol, data = df)
+m2 <- update(m1, ~ . + density)
+m3 <- update(m2, ~ . + residual.sugar)
+m4 <- update(m3, ~ . + pH)
+m5 <- update(m4, ~ . + volatile.acidity)
+m6 <- update(m5, ~ . + free.sulfur.dioxide)
+mtable(m1, m2, m3, m4, m5, m6)
+```
+
+Although this is the best model I build, it does not look like a good predictor.
+
+# Multivariate Analysis
+
+### General observations
+There are obvious clusterings for Alcohol, Residual Sugar and Density on strongly correlated pairs. Since Alcohol is the one which has most correlated pairs and it is the most correlated attribute with Quality, I think its pairs may also have some effects on Quality.
+
+### Interesting interactions between features
+I thought there might be remarkable clustering or more heterogeneous distributions of Quality on the pairs, but there are not. This may also make building model difficult.
+
+### Linear model
+The model was created by using 6 attributes. And final R-squared value is `r summary(m6)$r.squared`. Considering the R-squared value of initial one featured (i.e. Alcohol) model is `r summary(m1)$r.squared`, it does not look like a good predictor. So it can be said that the quality of a white wine is hard to predict before tasting. We should appreciate white wine tasters. Or, perhaps, additional data such as grape type or age are needed to build a significant model.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, Plot_One, message=FALSE, warning=FALSE}
+ggplot(aes(factor_quality), data = df) + 
+    geom_bar() + 
+    xlab("White Wine Quality Level (1 - 10)") + ylab("White Wine Count") + 
+    ggtitle(
+        "Histogram of White Wine Quality Level")
+summary(df$factor_quality)
+```
+
+### Description One
+Quality is normally distributed as expected with the range 6. There are just a few white wines with Quality score 3 or 9. So, there is no perfect white wine with the score 10. There are also no white wine with a quality score of 0, 1 or 2. This figure is important to comprehend the distribution of the quality scores on white wines in the dataset.
+
+### Plot Two
+```{r echo=FALSE, Plot_Two, message=FALSE, warning=FALSE}
+ggplot(aes(x = residual.sugar, y = density, color = factor_quality), 
+       data = df) + 
+    xlab("Residual Sugar (g / dm^3)") + ylab("Density (g / cm^3)") +
+    geom_jitter(alpha = 0.7) + ylim(0.986, quantile(df$density, 0.99)) +
+    xlim(0, quantile(df$residual.sugar, 0.99)) + 
+    ggtitle("Scatter plot of White Wine with Color set by Quality") +
+    scale_color_brewer(type = 'seq', 
+                       guide = guide_legend(reverse = T, title = "Quality"), 
+                       palette = "Oranges") + 
+    geom_smooth(method = "lm", se = FALSE,size=1)
+
+print("Correlations between Density and Residual Sugar")
+for (i in min(df$quality):max(df$quality)) {
+    sub_df <- subset(df, quality==i)
+    print(paste("For Quality score", i, ":", cor(sub_df[,c(5,9)])[1, 2]))
+}
+```
+
+### Description Two
+Unlike the plot one and three, Quality levels are not distinguished well in scatter plots. Thus, and clustering are harder for Quality levels, graph with parameters such as mean, median and count are better visualizations for Quality. I believe this figure is a good example that Quality is hard to predict with the attributes in this dataset.
+
+### Plot Three
+```{r echo=FALSE, Plot_Three, message=FALSE, warning=FALSE}
+p1 <- ggplot(aes(x=factor_quality, y=pH), data = df) + 
+    geom_violin(aes(fill = factor_quality)) +
+    ylim(quantile(df$pH, 0.01), quantile(df$pH, 0.99)) + 
+    xlab("White Wine Quality Level (1 - 10)") +
+    scale_fill_brewer(type = 'seq', 
+                      guide = guide_legend(reverse = T, 
+                                           title = "Quality"), 
+                      palette = "Oranges") +
+    ggtitle("pH Effect on White Wine Quality")
+p2 <- ggplot(aes(x=factor_quality, y=alcohol), data = df) + 
+    geom_violin(aes(fill = factor_quality)) +
+    ylim(quantile(df$alcohol, 0.01), quantile(df$alcohol, 0.99)) + 
+    xlab("White Wine Quality Level (1 - 10)") +
+    scale_fill_brewer(type = 'seq', 
+                      guide = guide_legend(reverse = T, 
+                                           title = "Quality"), 
+                      palette = "Oranges") + 
+    ylab("Alcohol (% by volume)") + 
+    ggtitle("Alcohol Effect on White Wine Quality")
+grid.arrange(p2, p1)
+```
+
+### Description Three
+In addition to traditional box plots, violin plots also support the argument that less Alcohol implies better Quality in the Quality range 3-5, but, in the Quality range 5-9, greater Alcohol refers better Quality. This exact relation can also be seen in pH with less variance. Wider parts in the plots indicate greater number of white wines with those attribute values. So, with the support of this figure, it can easily be said that Alcohol has a significant effect on Quality.
+
+### Summary
+There are many attributes to define the quality of a white wine. Even though some inferences can be made to predict or comment on a white wine quality, it is really hard to make a significant decision about Quality according to this analysis with this dataset. However, it can be said that Alcohol and pH have some effects on Quality depending on Quality range. And, according the final linear model, we can only explain about `r round(summary(m6)$r.squared*100, 2)`% of Quality variance with these attributes. This states that there are many other attributes outside of this dataset that affect the quality of a white wine.
+
+------
+
+# Reflection
+Despite considering myself a good wine drinker, I was not aware of many of these attributes until the analysis. So, the first difficulty is to have an idea about all attributes in the dataset in order to perform an efficient analysis.  
+
+In order to comprehend the relations between attributes, there was a need to plot all combinations. This means 11 plots in univariate section, 11x11 plots in bivariate section and more than 11x11x11 plots multivariate section. However, the correlation matix made this the entire process much easier.  
+
+There were also lots of syntax errors throughout the analysis, fortunately there are many sources about R on the internet. And, R community is very helpful about any kind of problems.  
+
+Understanding the Alcohol effect on Quality is the breakthrough of the analysis, afterwards things went better by focusing on that.  
+
+As already stated in the summary section, I believe additional features will be helpful to build better models. The dataset can be enriched with the information of grape type, age of wine or other chemical components of white wines for future analyses.

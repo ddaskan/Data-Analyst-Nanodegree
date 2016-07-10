@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "groupby_quality=group_by(df, quality)\ndf_by_quality=summarise(groupby_quality, \n                        corr=cor(df[,c(5,9)])[1, 2],\n                        n=n())\n\nprint(\"Correlations between Density and Residual Sugar\")\nfor (i in min(df$quality):max(df$quality)) {\n    sub_df <- subset(df, quality==i)\n    print(paste(\"For Quality score\", i, \":\", cor(sub_df[,c(5,9)])[1, 2]))\n}\n\n",
+    "created" : 1468181663267.000,
+    "dirty" : true,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "1974371254",
+    "id" : "5AFDEB9",
+    "lastKnownWriteTime" : 32088439404888165,
+    "last_content_update" : 1468190715038,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
