@@ -6,22 +6,25 @@
   div {
     margin: auto;
     text-align: center;
-    margin-top: 7px;
+    margin-top: 5px;
   }
   text {
     font-weight: bold;
     font-size: 15px;
   }
-  p {
+  li {
      margin-left: 20px;
+  }
+  p {
+     margin-bottom: 30px;
   }
 </style>
 <title>Delays by Dogan Askan</title>
 <h2>USA Flight Delays between 1987-2008 by Dogan Askan</h2>
-<text1>I tried to explain the changes in flight delays in the USA between 1987 and 2008 by weekdays. The first animated graph shows the average total (i.e. arrival + departure) delay in days for each year. The second graph shows the changes in departure, arrival or total delay throughout the years for each day, days are represented by colours.</text1>
+<intro><p>I tried to explain the changes in flight delays in the USA between 1987 and 2008 by weekdays. The first animated graph shows the average total (i.e. arrival + departure) delay in days for each year. The second graph shows the changes in departure, arrival or total delay throughout the years for each day, days are represented by colours. It looks <b>Friday</b> leads followed by <b>Thursday</b> for almost every year.</p></intro>
 <div id="chartContainer">
   <script type="text/javascript">
-      var svg = dimple.newSvg("#chartContainer", 590, 420);
+      var svg = dimple.newSvg("#chartContainer", 590, 410);
       svg.append("text").attr("x", (svg[0][0].clientWidth / 2))
                         .attr("y", 14)
                         .attr("text-anchor", "middle")
@@ -95,6 +98,7 @@
           var mychart = new dimple.chart(svg, data);
           mychart.setBounds(60, 50, 445, 310)
           x_axis = mychart.addCategoryAxis("x", "Day");
+          x_axis.title = ""; // to hide x axis title
           x_axis.addOrderRule(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
           y_axis = mychart.addMeasureAxis("y", "TotalDelay");
           y_axis.tickFormat = ',.1f';
@@ -179,7 +183,6 @@
       x.addOrderRule("Date");
       y_axis = myChart.addMeasureAxis("y", "DepDelay");
       y_axis.title = "Average Delays in Minutes";
-      myChart.addLegend(90, 5, 400, 20, "right");
       myChart.draw();
     });
 
@@ -197,6 +200,7 @@
           myChart.setBounds(60, 30, 505, 305);
           var x = myChart.addCategoryAxis("x", "Year");
           x.addOrderRule("Date");
+          x.title = ""; // to hide x axis title
           y_axis = myChart.addMeasureAxis("y", colname);
           y_axis.tickFormat = ',.1f';
           if (colname==='DepDelay') {
@@ -209,7 +213,7 @@
             y_axis.title = "Average Total Delay Delay in Minutes";
           }
           myChart.addSeries("Day", dimple.plot.line);
-          myChart.addLegend(90, 390, 400, 20, "right");
+          myChart.addLegend(90, 380, 400, 20, "right");
           myChart.draw();
         });
     }
@@ -217,8 +221,8 @@
 </div>
 <text2>
 <h3>Resources</h3>
-<p>&bull; <a href="http://dimplejs.org/" target="_blank">dimple.js</a></p>
-<p>&bull; <a href="https://github.com/PMSI-AlignAlytics/dimple/wiki" target="_blank">dimple Wiki</a></p>
-<p>&bull; <a href="http://stat-computing.org/dataexpo/2009/the-data.html" target="_blank">Data</a></p>
+<li><a href="http://dimplejs.org/" target="_blank">dimple.js</a></li>
+<li><a href="https://github.com/PMSI-AlignAlytics/dimple/wiki" target="_blank">dimple Wiki</a></li>
+<li><a href="http://stat-computing.org/dataexpo/2009/the-data.html" target="_blank">Data</a></li>
 </text2>
 </html>
