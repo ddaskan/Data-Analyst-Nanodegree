@@ -13,7 +13,11 @@ I chose the bubbles and line graph to visualize and present my findings for dela
 3. A line graph showing only delays on arrival with delays in y axis and years in x axis. Days are denoted in different coloured lines.
 4. A line graph showing only total delays with delays in y axis and years in x axis. Days are denoted in different coloured lines.
 
-Initial design can be seen [here](http://bl.ocks.org/ddaskan/raw/d0a55c4f14f19c421000127746c0b41e/).
+The initial design can be seen [here](http://bl.ocks.org/ddaskan/raw/d0a55c4f14f19c421000127746c0b41e/).  
+
+After received feedback, I did some changes on my design.
+
+So the final design can be seen [here]().
 
 # Feedback
 1. There are too much graphs, you can combine last 3. And you can make the year legend better by centering years in blue areas in the first graph.
@@ -24,3 +28,4 @@ Initial design can be seen [here](http://bl.ocks.org/ddaskan/raw/d0a55c4f14f19c4
 * [dimple.js](http://dimplejs.org/)
 * [dimple Wiki](https://github.com/PMSI-AlignAlytics/dimple/wiki)
 * [Data](http://stat-computing.org/dataexpo/2009/the-data.html)
+* [stackoverflow](http://stackoverflow.com/)
