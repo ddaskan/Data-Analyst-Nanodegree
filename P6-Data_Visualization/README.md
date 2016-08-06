@@ -1,6 +1,6 @@
 # Summary
 
-I have tried explain the changes in flight delays in the USA throughout the years by weekdays. The first animated graph shows the average total (i.e. arrival + departure) delay in days for each year. The second graph shows the changes in departure, arrival or total delay throughout the years for each day, days are represented by colours.
+I have tried explain the changes in flight delays in the USA between 1987 and 2008 by weekdays. The first animated graph shows the average total (i.e. arrival + departure) delay in days for each year. The second graph shows the changes in departure, arrival or total delay throughout the years for each day, days are represented by colours.
 
 # Design
 
