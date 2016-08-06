@@ -7,6 +7,7 @@ The original data is more than 10GB and has about 120 million rows in 22 files f
 
 ### Visualization
 I chose the bubbles and line graph to visualize and present my findings for delay changes by year and day respectively. I created four charts in total initially.
+
 1. An animated bubble graph with total delays in y axis and days in x axis. It changes for every year.
 2. A line graph showing only delays on departure with delays in y axis and years in x axis. Days are denoted in different coloured lines.
 3. A line graph showing only delays on arrival with delays in y axis and years in x axis. Days are denoted in different coloured lines.
