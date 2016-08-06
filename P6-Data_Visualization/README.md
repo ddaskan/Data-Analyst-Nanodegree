@@ -17,7 +17,12 @@ The initial design can be seen [here](http://bl.ocks.org/ddaskan/raw/d0a55c4f14f
 
 After received feedback, I did some changes on my design.
 
-So the final design can be seen [here]().
+* I combined last 3 graphs and add buttons to switch delay types. I fixed the legend problem in the first graph.
+* I made y axis titles clear to understand and changed values integer to float with 1 decimal.
+* I turned bubbles into a line in the first chart.
+* I added main titles for graphs and arranged margins. I removed y axis titles since labels are clear enough to explain themselves.
+
+So the final design can be seen [here](http://bl.ocks.org/ddaskan/raw/054ec94f25b30cc6ececdcf0a06d7480/).
 
 # Feedback
 1. There are too much graphs, you can combine last 3. And you can make the year legend better by centering years in blue areas in the first graph.
