@@ -17,12 +17,14 @@ The initial design can be seen [here](http://bl.ocks.org/ddaskan/raw/d0a55c4f14f
 
 After received feedback, I did some changes on my design.
 
-* I combined last 3 graphs and add buttons to switch delay types. I fixed the legend problem in the first graph.
-* I made y axis titles clear to understand and changed values integer to float with 1 decimal.
-* I turned bubbles into a line in the first chart.
-* I added main titles for graphs and arranged margins. I removed y axis titles since labels are clear enough to explain themselves.
+* To use the charts effectively by using interactive buttons, I combined last 3 graphs and add buttons to switch delay types. For better visualization, I fixed the legend problem in the first graph. 
+* To provide better understanding to the readers, I made y axis titles clarify and changed values integer to float with 1 decimal.
+* Since days are a type of time series, I turned bubbles into a line in the first chart.
+* For clearer visualization, I added main titles for graphs and arranged margins. For plain visualization, I removed y axis titles since labels are clear enough to explain themselves.
+* In order to make it easier to see, I made the line in the first graph thicker.
+* To provide more divergent colour scheme, I customized the day colours by using COLORBREWER.
 
-So the final design can be seen [here](http://bl.ocks.org/ddaskan/raw/054ec94f25b30cc6ececdcf0a06d7480/).
+So the final design can be seen [here](http://bl.ocks.org/ddaskan/raw/a335718f7ec90f51d05dfa5785c2e21e/).
 
 # Feedback
 1. There are too much graphs, you can combine last 3. And you can make the year legend better by centering years in blue areas in the first graph.
@@ -34,3 +36,4 @@ So the final design can be seen [here](http://bl.ocks.org/ddaskan/raw/054ec94f25
 * [dimple Wiki](https://github.com/PMSI-AlignAlytics/dimple/wiki)
 * [Data](http://stat-computing.org/dataexpo/2009/the-data.html)
 * [stackoverflow](http://stackoverflow.com/)
+* [COLORBREWER](http://colorbrewer2.org/)
