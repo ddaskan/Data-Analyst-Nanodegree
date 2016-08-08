@@ -1,0 +1,15 @@
+div {
+  margin: auto;
+  text-align: center;
+  margin-top: 5px;
+}
+text {
+  font-weight: bold;
+  font-size: 15px;
+}
+li {
+   margin-left: 20px;
+}
+p {
+   margin-bottom: 30px;
+}

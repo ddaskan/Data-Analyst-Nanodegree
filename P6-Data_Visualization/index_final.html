@@ -1,24 +1,8 @@
 <!DOCTYPE html>
 <html>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://dimplejs.org/dist/dimple.v2.1.6.min.js"></script>
-<style type="text/css">
-  div {
-    margin: auto;
-    text-align: center;
-    margin-top: 5px;
-  }
-  text {
-    font-weight: bold;
-    font-size: 15px;
-  }
-  li {
-     margin-left: 20px;
-  }
-  p {
-     margin-bottom: 30px;
-  }
-</style>
+<script type="text/javascript" src="js/d3.v3.min.js"></script>
+<script type="text/javascript" src="js/dimple.v2.1.6.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/style.css">
 <title>Delays by Dogan Askan</title>
 <h2>USA Flight Delays between 1987-2008 by Dogan Askan</h2>
 <intro><p>I tried to explain the changes in flight delays in the USA between 1987 and 2008 by weekdays. The first animated graph shows the average total (i.e. arrival + departure) delay in days for each year. The second graph shows the changes in departure, arrival or total delay throughout the years for each day, days are represented by colours. It looks <b>Friday</b> leads followed by <b>Thursday</b> for almost every year.</p></intro>
@@ -104,7 +88,8 @@
           y_axis.tickFormat = ',.1f';
           y_axis.title = "Average Total Delay in Minutes";
           //mychart.addColorAxis('DepDelay')
-          mychart.addSeries(null, dimple.plot.line)
+          var lines = mychart.addSeries(null, dimple.plot.line);
+          lines.lineWeight = 5;
           //mychart.addLegend(60, 10, 410, 60);
 
           // Add a storyboard to the main chart and set the tick event
@@ -213,6 +198,14 @@
             y_axis.title = "Average Total Delay Delay in Minutes";
           }
           myChart.addSeries("Day", dimple.plot.line);
+
+          // custom color the days
+          var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+          var days_colors = ['rgb(228,26,28)','rgb(55,126,184)','rgb(77,175,74)','rgb(152,78,163)','rgb(255,127,0)','rgb(255,255,51)','rgb(166,86,40)'];
+          for (i = 0; i<days.length; i++) {
+            myChart.assignColor(days[i], days_colors[i], null, 1);
+          }
+
           myChart.addLegend(90, 380, 400, 20, "right");
           myChart.draw();
         });
